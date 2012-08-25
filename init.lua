@@ -24,7 +24,7 @@ SOUND_GAIN = 0.8
 --=========
 -- Raillike nodes
 --=========
-RAILS = {"default:rail", "carts:meseconrail_off", "carts:meseconrail_on", "carts:meseconrail_stop_off", "carts:meseconrail_stop_on"}
+RAILS = {"default:rail", "carts:meseconrail_off", "carts:meseconrail_on", "carts:meseconrail_stop_off", "carts:meseconrail_stop_on", "moreores:copper_rail"}
 
 dofile(minetest.get_modpath("carts").."/box.lua")
 
