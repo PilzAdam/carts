@@ -1,8 +1,6 @@
 ===CARTS MOD for MINETEST-C55===
 by PilzAdam
 
-Version 30
-
 Introduction:
 This mod adds carts to minetest. There were rails for so long in minetest
 but no carts so that they were useless. But this mod brings what many
