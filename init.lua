@@ -11,9 +11,10 @@ TRANSPORT_PLAYER = true
 -- The name of the Soundfile
 --=========
 SOUND_FILES = {
-				{"carts_curved_rails", 2},
-				{"carts_railway_crossover", 2},
-				{"carts_straight_rails", 1},
+				--{"carts_curved_rails", 2},
+				--{"carts_railway_crossover", 2},
+				--{"carts_straight_rails", 1},
+				{"nothing", 100}
 			  }
 
 --=========
@@ -850,3 +851,7 @@ dofile(minetest.get_modpath("carts").."/switches.lua")
 dofile(minetest.get_modpath("carts").."/mesecons.lua")
 dofile(minetest.get_modpath("carts").."/chest.lua")
 dofile(minetest.get_modpath("carts").."/functions.lua")
+
+if minetest.setting_get("log_mods") then
+	minetest.log("action", "carts loaded")
+end
