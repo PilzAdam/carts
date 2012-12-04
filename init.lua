@@ -14,7 +14,7 @@ local cart = {
 	
 	driver = nil, -- TODO: Replace this with self.object.child or so
 	velocity = {x=0, y=0, z=0},
-	MAX_V = 9,
+	MAX_V = 5.5,
 }
 
 function cart:on_rightclick(clicker)
@@ -192,15 +192,15 @@ function cart:on_step(dtime)
 	-- Accelerate or decelerate the cart according to the pitch
 	if self.velocity.y < 0 then
 		self.velocity = {
-			x = self.velocity.x + 0.15*cart_func:get_sign(self.velocity.x),
-			y = self.velocity.y + 0.15*cart_func:get_sign(self.velocity.y),
-			z = self.velocity.z + 0.15*cart_func:get_sign(self.velocity.z),
+			x = self.velocity.x + 0.13*cart_func:get_sign(self.velocity.x),
+			y = self.velocity.y + 0.13*cart_func:get_sign(self.velocity.y),
+			z = self.velocity.z + 0.13*cart_func:get_sign(self.velocity.z),
 		}
 	elseif self.velocity.y > 0 then
 		self.velocity = {
-			x = self.velocity.x - 0.08*cart_func:get_sign(self.velocity.x),
-			y = self.velocity.y - 0.08*cart_func:get_sign(self.velocity.y),
-			z = self.velocity.z - 0.08*cart_func:get_sign(self.velocity.z),
+			x = self.velocity.x - 0.1*cart_func:get_sign(self.velocity.x),
+			y = self.velocity.y - 0.1*cart_func:get_sign(self.velocity.y),
+			z = self.velocity.z - 0.1*cart_func:get_sign(self.velocity.z),
 		}
 	else
 		self.velocity = {
@@ -274,6 +274,7 @@ function cart:on_step(dtime)
 	end
 	
 	-- Limit the velocity
+	local v_tmp = cart_func.v3:copy(self.velocity)
 	if math.abs(self.velocity.x) > self.MAX_V then
 		self.velocity.x = self.MAX_V*cart_func:get_sign(self.velocity.x)
 	end
@@ -285,6 +286,8 @@ function cart:on_step(dtime)
 	end
 	
 	self.object:setvelocity(self.velocity)
+	
+	self.velocity = cart_func.v3:copy(v_tmp)
 	
 end
 
