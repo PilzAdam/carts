@@ -267,25 +267,30 @@ function cart:on_step(dtime)
 	self.object:setpos(pos)
 	dir = cart_func:velocity_to_dir(self.velocity)
 	
-	-- Accelerate or decelerate the cart according to the pitch
+	-- Accelerate or decelerate the cart according to the pitch and acceleration of the rail node
+	local a = tonumber(minetest.env:get_meta(pos):get_string("cart_acceleration"))
+	if not a then
+		a = 0
+	end
 	if self.velocity.y < 0 then
 		self.velocity = {
-			x = self.velocity.x + 0.13*cart_func:get_sign(self.velocity.x),
-			y = self.velocity.y + 0.13*cart_func:get_sign(self.velocity.y),
-			z = self.velocity.z + 0.13*cart_func:get_sign(self.velocity.z),
+			x = self.velocity.x + (a+0.13)*cart_func:get_sign(self.velocity.x),
+			y = self.velocity.y + (a+0.13)*cart_func:get_sign(self.velocity.y),
+			z = self.velocity.z + (a+0.13)*cart_func:get_sign(self.velocity.z),
 		}
 	elseif self.velocity.y > 0 then
 		self.velocity = {
-			x = self.velocity.x - 0.1*cart_func:get_sign(self.velocity.x),
-			y = self.velocity.y - 0.1*cart_func:get_sign(self.velocity.y),
-			z = self.velocity.z - 0.1*cart_func:get_sign(self.velocity.z),
+			x = self.velocity.x + (a-0.1)*cart_func:get_sign(self.velocity.x),
+			y = self.velocity.y + (a-0.1)*cart_func:get_sign(self.velocity.y),
+			z = self.velocity.z + (a-0.1)*cart_func:get_sign(self.velocity.z),
 		}
 	else
 		self.velocity = {
-			x = self.velocity.x - 0.03*cart_func:get_sign(self.velocity.x),
-			y = self.velocity.y - 0.03*cart_func:get_sign(self.velocity.y),
-			z = self.velocity.z - 0.03*cart_func:get_sign(self.velocity.z),
+			x = self.velocity.x + (a-0.03)*cart_func:get_sign(self.velocity.x),
+			y = self.velocity.y + (a-0.03)*cart_func:get_sign(self.velocity.y),
+			z = self.velocity.z + (a-0.03)*cart_func:get_sign(self.velocity.z),
 		}
+			
 		-- Place the cart exactly on top of the rail
 		if cart_func:is_rail(cart_func.v3:round(pos)) then 
 			self.object:setpos({x=pos.x, y=math.floor(pos.y+0.5), z=pos.z})
@@ -384,3 +389,57 @@ minetest.register_craft({
 		{"default:steel_ingot", "default:steel_ingot", "default:steel_ingot"},
 	},
 })
+
+--
+-- Mesecon support
+--
+
+if minetest.get_modpath("mesecons") then
+	minetest.after(0, function()
+		mesecon:register_effector("default:rail", "default:rail")
+		
+		mesecon:register_on_signal_on(function(pos, node)
+			if node.name == "default:rail" then
+				minetest.env:get_meta(pos):set_string("cart_acceleration", "0.5")
+				-- Start the cart
+				for _,obj in ipairs(minetest.env:get_objects_inside_radius(pos, 1)) do
+					if obj:get_luaentity() and obj:get_luaentity().name == "carts:cart" then
+						local self = obj:get_luaentity()
+						if cart_func.v3:equal(self.velocity, {x=0, y=0, z=0}) then
+							for _,y in ipairs({0,-1,1}) do
+								for _,z in ipairs({1,-1}) do
+									if cart_func.v3:equal(self:get_rail_direction(obj:getpos(), {x=0, y=y, z=z}), {x=0, y=y, z=z}) then
+										self.velocity = {
+											x = 0,
+											y = 0.2*y,
+											z = 0.2*z,
+										}
+										self.old_velocity = self.velocity
+										return
+									end
+								end
+								for _,x in ipairs({1,-1}) do
+									if cart_func.v3:equal(self:get_rail_direction(obj:getpos(), {x=x, y=y, z=0}), {x=x, y=y, z=0}) then
+										self.velocity = {
+											x = 0.2*x,
+											y = 0.2*y,
+											z = 0,
+										}
+										self.old_velocity = self.velocity
+										return
+									end
+								end
+							end
+						end
+					end
+				end
+			end
+		end)
+		
+		mesecon:register_on_signal_off(function(pos, node)
+			if node.name == "default:rail" then
+				minetest.env:get_meta(pos):set_string("cart_acceleration", "0")
+			end
+		end)
+	end)
+end
