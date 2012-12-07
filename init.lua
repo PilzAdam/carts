@@ -340,6 +340,16 @@ function cart:on_step(dtime)
 	self.old_pos = self.object:getpos()
 	self.old_velocity = cart_func.v3:copy(self.velocity)
 	
+	if dir.x < 0 then
+		self.object:setyaw(math.pi/2)
+	elseif dir.x > 0 then
+		self.object:setyaw(3*math.pi/2)
+	elseif dir.z < 0 then
+		self.object:setyaw(math.pi)
+	elseif dir.z > 0 then
+		self.object:setyaw(0)
+	end
+	
 end
 
 minetest.register_entity("carts:cart", cart)
