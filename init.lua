@@ -14,7 +14,9 @@ local cart = {
 	
 	driver = nil, -- TODO: Replace this with self.object.child or so
 	velocity = {x=0, y=0, z=0},
-	MAX_V = 5.5,
+	old_pos = nil,
+	old_velocity = nil,
+	MAX_V = 15, -- Limit of the velocity
 }
 
 function cart:on_rightclick(clicker)
@@ -36,15 +38,15 @@ function cart:on_activate(staticdata, dtime_s)
 		local tmp = minetest.deserialize(staticdata)
 		if tmp then
 			self.velocity = tmp.velocity
-			self.MAX_V = tmp.MAX_V
 		end
 	end
+	self.old_pos = self.object:getpos()
+	self.old_velocity = self.velocity
 end
 
 function cart:get_staticdata()
 	return minetest.serialize({
 		velocity = self.velocity,
-		MAX_V = self.MAX_V,
 	})
 end
 
@@ -151,6 +153,56 @@ function cart:get_rail_direction(pos, dir)
 	return {x=0, y=0, z=0}
 end
 
+function cart:calc_rail_direction(pos, vel)
+	local velocity = cart_func.v3:copy(vel)
+	local p = cart_func.v3:copy(pos)
+	if cart_func:is_int(p.x) and cart_func:is_int(p.z) then
+		
+		local dir = cart_func:velocity_to_dir(velocity)
+		local dir_old = cart_func.v3:copy(dir)
+		
+		dir = self:get_rail_direction(cart_func.v3:round(p), dir)
+		
+		local v = math.max(math.abs(velocity.x), math.abs(velocity.z))
+		velocity = {
+			x = v * dir.x,
+			y = v * dir.y,
+			z = v * dir.z,
+		}
+		
+		if cart_func.v3:equal(velocity, {x=0, y=0, z=0}) then
+			
+			-- First try this HACK
+			-- Move the cart on the rail if above or under it
+			if cart_func:is_rail(cart_func.v3:add(p, {x=0, y=1, z=0})) and vel.y >= 0 then
+				p = cart_func.v3:add(p, {x=0, y=1, z=0})
+				return self:calc_rail_direction(p, vel)
+			end
+			if cart_func:is_rail(cart_func.v3:add(p, {x=0, y=-1, z=0})) and vel.y <= 0  then
+				p = cart_func.v3:add(p, {x=0, y=-1, z=0})
+				return self:calc_rail_direction(p, vel)
+			end
+			-- Now the HACK gets really dirty
+			if cart_func:is_rail(cart_func.v3:add(p, {x=0, y=2, z=0})) and vel.y >= 0 then
+				p = cart_func.v3:add(p, {x=0, y=1, z=0})
+				return self:calc_rail_direction(p, vel)
+			end
+			if cart_func:is_rail(cart_func.v3:add(p, {x=0, y=-2, z=0})) and vel.y <= 0 then
+				p = cart_func.v3:add(p, {x=0, y=-1, z=0})
+				return self:calc_rail_direction(p, vel)
+			end
+			
+			return {x=0, y=0, z=0}, p
+		end
+		
+		if not cart_func.v3:equal(dir, dir_old) then
+			return velocity, cart_func.v3:round(p)
+		end
+		
+	end
+	return velocity, p
+end
+
 function cart:on_step(dtime)
 	
 	local pos = self.object:getpos()
@@ -162,32 +214,58 @@ function cart:on_step(dtime)
 		if math.abs(self.velocity.x) < 0.1 and  math.abs(self.velocity.z) < 0.1 then
 			self.velocity = {x=0, y=0, z=0}
 			self.object:setvelocity(self.velocity)
+			self.old_velocity = self.velocity
+			self.old_pos = self.object:getpos()
 			return
 		end
 	end
 	
-	-- HACK
-	-- Move the cart on the rail if above or under it
-	if cart_func:is_rail(cart_func.v3:add(cart_func.v3:copy(pos), {x=0, y=1, z=0}))  and
-			self.velocity.y >= 0 then
-		self.object:setpos(cart_func.v3:add(cart_func.v3:copy(pos), {x=0, y=1, z=0}))
-		pos = self.object:getpos()
-	end
-	if cart_func:is_rail(cart_func.v3:add(cart_func.v3:copy(pos), {x=0, y=-1, z=0})) and
-			self.velocity.y <= 0 then
-		self.object:setpos(cart_func.v3:add(cart_func.v3:copy(pos), {x=0, y=-1, z=0}))
-		pos = self.object:getpos()
-	end
+	--
+	-- Set the new moving direction
+	--
 	
-	-- HACK
-	-- Move the cart back on rails if it isnt
-	if not cart_func:is_rail(pos) and self.velocity.y == 0 then
-		local p = cart_func.v3:round(cart_func.v3:copy(pos))
-		if cart_func:is_rail(cart_func.v3:add(p, {x=dir.x*-1, y=0, z=dir.z*-1})) then
-			self.object:setpos(cart_func.v3:add(p, {x=dir.x*-1, y=0, z=dir.z*-1}))
-			pos = self.object:getpos()
+	-- Recalcualte the rails that are passed since the last server step
+	local old_dir = cart_func:velocity_to_dir(self.old_velocity)
+	if old_dir.x ~= 0 then
+		local sign = cart_func:get_sign(pos.x-self.old_pos.x)
+		while true do
+			if sign ~= cart_func:get_sign(pos.x-self.old_pos.x) or pos.x == self.old_pos.x then
+				break
+			end
+			self.old_pos.x = self.old_pos.x + cart_func:get_sign(pos.x-self.old_pos.x)*0.1
+			self.old_pos.y = self.old_pos.y + cart_func:get_sign(pos.x-self.old_pos.x)*0.1*old_dir.y
+			self.old_velocity, self.old_pos = self:calc_rail_direction(self.old_pos, self.old_velocity)
+			old_dir = cart_func:velocity_to_dir(self.old_velocity)
+			if not cart_func.v3:equal(cart_func:velocity_to_dir(self.old_velocity), dir) then
+				self.velocity = self.old_velocity
+				pos = self.old_pos
+				self.object:setpos(self.old_pos)
+				break
+			end
+		end
+	elseif old_dir.z ~= 0 then
+		local sign = cart_func:get_sign(pos.z-self.old_pos.z)
+		while true do
+			if sign ~= cart_func:get_sign(pos.z-self.old_pos.z) or pos.z == self.old_pos.z then
+				break
+			end
+			self.old_pos.z = self.old_pos.z + cart_func:get_sign(pos.z-self.old_pos.z)*0.1
+			self.old_pos.y = self.old_pos.y + cart_func:get_sign(pos.z-self.old_pos.z)*0.1*old_dir.y
+			self.old_velocity, self.old_pos = self:calc_rail_direction(self.old_pos, self.old_velocity)
+			old_dir = cart_func:velocity_to_dir(self.old_velocity)
+			if not cart_func.v3:equal(cart_func:velocity_to_dir(self.old_velocity), dir) then
+				self.velocity = self.old_velocity
+				pos = self.old_pos
+				self.object:setpos(self.old_pos)
+				break
+			end
 		end
 	end
+	
+	-- Calculate the new step
+	self.velocity, pos = self:calc_rail_direction(pos, self.velocity)
+	self.object:setpos(pos)
+	dir = cart_func:velocity_to_dir(self.velocity)
 	
 	-- Accelerate or decelerate the cart according to the pitch
 	if self.velocity.y < 0 then
@@ -229,33 +307,6 @@ function cart:on_step(dtime)
 		end
 	end
 	
-	-- Set the new moving direction
-	if cart_func:is_int(pos.x) and cart_func:is_int(pos.z) then
-		
-		dir = cart_func:velocity_to_dir(self.velocity)
-		local dir_old = cart_func.v3:copy(dir)
-		
-		dir = self:get_rail_direction(cart_func.v3:round(pos), dir)
-		
-		local v = math.max(math.abs(self.velocity.x), math.abs(self.velocity.z))
-		self.velocity = {
-			x = v * dir.x,
-			y = v * dir.y,
-			z = v * dir.z,
-		}
-		
-		if cart_func.v3:equal(self.velocity, {x=0, y=0, z=0}) then
-			self.object:setvelocity(self.velocity)
-			return
-		end
-		
-		if not cart_func.v3:equal(dir, dir_old) then
-			self.object:setpos(cart_func.v3:round(pos))
-			pos = self.object:getpos()
-		end
-		
-	end
-	
 	-- Allow only one moving direction (multiply the other one with 0)
 	dir = cart_func:velocity_to_dir(self.velocity)
 	self.velocity = {
@@ -274,7 +325,6 @@ function cart:on_step(dtime)
 	end
 	
 	-- Limit the velocity
-	local v_tmp = cart_func.v3:copy(self.velocity)
 	if math.abs(self.velocity.x) > self.MAX_V then
 		self.velocity.x = self.MAX_V*cart_func:get_sign(self.velocity.x)
 	end
@@ -287,7 +337,8 @@ function cart:on_step(dtime)
 	
 	self.object:setvelocity(self.velocity)
 	
-	self.velocity = cart_func.v3:copy(v_tmp)
+	self.old_pos = self.object:getpos()
+	self.old_velocity = cart_func.v3:copy(self.velocity)
 	
 end
 

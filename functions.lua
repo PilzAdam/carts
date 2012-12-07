@@ -31,7 +31,7 @@ end
 
 function cart_func:is_int(z)
 	z = math.abs(z)
-	return math.abs(math.floor(z+0.5)-z) < 0.1
+	return math.abs(math.floor(z+0.5)-z) <= 0.1
 end
 
 cart_func.v3 = {}
