@@ -399,7 +399,7 @@ if minetest.get_modpath("mesecons") then
 		mesecon:register_effector("default:rail", "default:rail")
 		
 		mesecon:register_on_signal_on(function(pos, node)
-			if node.name == "default:rail" then
+			if cart_func:is_rail(pos) then
 				minetest.env:get_meta(pos):set_string("cart_acceleration", "0.5")
 				-- Start the cart
 				for _,obj in ipairs(minetest.env:get_objects_inside_radius(pos, 1)) do
@@ -437,7 +437,7 @@ if minetest.get_modpath("mesecons") then
 		end)
 		
 		mesecon:register_on_signal_off(function(pos, node)
-			if node.name == "default:rail" then
+			if cart_func:is_rail(pos) then
 				minetest.env:get_meta(pos):set_string("cart_acceleration", "0")
 			end
 		end)
