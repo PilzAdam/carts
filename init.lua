@@ -66,13 +66,23 @@ function cart:on_punch(puncher, time_from_last_punch, tool_capabilities, directi
 		return
 	end
 	
-	local d = direction
+	local d = cart_func:velocity_to_dir(direction)
 	local s = self.velocity
 	if time_from_last_punch > tool_capabilities.full_punch_interval then
 		time_from_last_punch = tool_capabilities.full_punch_interval
 	end
 	local f = 4*(time_from_last_punch/tool_capabilities.full_punch_interval)
-	self.velocity = {x=s.x+d.x*f, y=s.y, z=s.z+d.z*f}
+	local v = {x=s.x+d.x*f, y=s.y, z=s.z+d.z*f}
+	if math.abs(v.x) < 6 and math.abs(v.z) < 6 then
+		self.velocity = v
+	else
+		if math.abs(self.velocity.x) < 6 then
+			self.velocity.x = 6*cart_func:get_sign(self.velocity.x)
+		end
+		if math.abs(self.velocity.z) < 6 then
+			self.velocity.z = 6*cart_func:get_sign(self.velocity.z)
+		end
+	end
 end
 
 -- Returns the direction as a unit vector
