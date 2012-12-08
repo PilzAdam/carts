@@ -76,10 +76,10 @@ function cart:on_punch(puncher, time_from_last_punch, tool_capabilities, directi
 	if math.abs(v.x) < 6 and math.abs(v.z) < 6 then
 		self.velocity = v
 	else
-		if math.abs(self.velocity.x) < 6 then
+		if math.abs(self.velocity.x) < 6 and math.abs(v.x) >= 6 then
 			self.velocity.x = 6*cart_func:get_sign(self.velocity.x)
 		end
-		if math.abs(self.velocity.z) < 6 then
+		if math.abs(self.velocity.z) < 6 and math.abs(v.z) >= 6 then
 			self.velocity.z = 6*cart_func:get_sign(self.velocity.z)
 		end
 	end
