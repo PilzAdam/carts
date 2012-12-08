@@ -331,11 +331,11 @@ function cart:on_step(dtime)
 	}
 	
 	-- Move cart exactly on the rail
-	if dir.x == 0 and not cart_func:is_int(self.velocity.x) then
-		pos.x = math.floor(0.5+pos.x)
-		self.object:setpos(pos)
-	elseif dir.z == 0 and not cart_func:is_int(self.velocity.z) then
+	if dir.x ~= 0 and not cart_func:is_int(pos.z) then
 		pos.z = math.floor(0.5+pos.z)
+		self.object:setpos(pos)
+	elseif dir.z ~= 0 and not cart_func:is_int(pos.x) then
+		pos.x = math.floor(0.5+pos.x)
 		self.object:setpos(pos)
 	end
 	
