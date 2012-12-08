@@ -26,7 +26,7 @@ function cart:on_rightclick(clicker)
 	if self.driver and clicker == self.driver then
 		self.driver = nil
 		clicker:set_detach()
-	else
+	elseif not self.driver then
 		self.driver = clicker
 		clicker:set_attach(self.object, "", {x=0,y=5,z=0}, {x=0,y=0,z=0})
 	end
