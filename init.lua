@@ -12,7 +12,7 @@ local cart = {
 	visual_size = {x=1, y=1},
 	textures = {"cart_top.png", "cart_bottom.png", "cart_side.png", "cart_side.png", "cart_side.png", "cart_side.png"},
 	
-	driver = nil, -- TODO: Replace this with self.object.child or so
+	driver = nil,
 	velocity = {x=0, y=0, z=0},
 	old_pos = nil,
 	old_velocity = nil,
