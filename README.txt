@@ -6,8 +6,8 @@ License of source code:
 -----------------------
 WTFPL
 
-License of media (textures and sounds):
----------------------------------------
+License of media (textures, sounds and models):
+-----------------------------------------------
 CC-0
 
 Authors of media files:
@@ -16,3 +16,7 @@ kddekadenz:
   cart_bottom.png
   cart_side.png
   cart_top.png
+
+Zeg9:
+  cart.blend
+  cart.x
