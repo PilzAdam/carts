@@ -8,7 +8,8 @@ dofile(minetest.get_modpath("carts").."/functions.lua")
 local cart = {
 	physical = false,
 	collisionbox = {-0.5,-0.5,-0.5, 0.5,0.5,0.5},
-	visual = "cube",
+	visual = "mesh",
+	mesh = "cart.x",
 	visual_size = {x=1, y=1},
 	textures = {"cart_top.png", "cart_bottom.png", "cart_side.png", "cart_side.png", "cart_side.png", "cart_side.png"},
 	
