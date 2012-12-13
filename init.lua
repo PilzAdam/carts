@@ -366,6 +366,14 @@ function cart:on_step(dtime)
 		self.object:setyaw(0)
 	end
 	
+	if dir.y == -1 then
+		self.object:set_animation({x=1, y=1}, 1, 0)
+	elseif dir.y == 1 then
+		self.object:set_animation({x=2, y=2}, 1, 0)
+	else
+		self.object:set_animation({x=0, y=0}, 1, 0)
+	end
+	
 end
 
 minetest.register_entity("carts:cart", cart)
