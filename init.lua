@@ -11,7 +11,7 @@ local cart = {
 	visual = "mesh",
 	mesh = "cart.x",
 	visual_size = {x=1, y=1},
-	textures = {"cart_top.png", "cart_bottom.png", "cart_side.png", "cart_side.png", "cart_side.png", "cart_side.png"},
+	textures = {"cart.png"},
 	
 	driver = nil,
 	velocity = {x=0, y=0, z=0},
