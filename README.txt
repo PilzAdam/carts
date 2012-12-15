@@ -18,5 +18,5 @@ kddekadenz:
   cart_top.png
 
 Zeg9:
-  cart.blend
   cart.x
+  cart.png
