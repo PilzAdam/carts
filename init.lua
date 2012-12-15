@@ -413,12 +413,25 @@ minetest.register_craft({
 -- Mesecon support
 --
 
-if minetest.get_modpath("mesecons") then
-	minetest.after(0, function()
-		mesecon:register_effector("default:rail", "default:rail")
-		
-		mesecon:register_on_signal_on(function(pos, node)
-			if cart_func:is_rail(pos) then
+minetest.register_node(":default:rail", {
+	description = "Rail",
+	drawtype = "raillike",
+	tiles = {"default_rail.png", "default_rail_curved.png", "default_rail_t_junction.png", "default_rail_crossing.png"},
+	inventory_image = "default_rail.png",
+	wield_image = "default_rail.png",
+	paramtype = "light",
+	is_ground_content = true,
+	walkable = false,
+	selection_box = {
+		type = "fixed",
+                -- but how to specify the dimensions for curved and sideways rails?
+                fixed = {-1/2, -1/2, -1/2, 1/2, -1/2+1/16, 1/2},
+	},
+	groups = {bendy=2,snappy=1,dig_immediate=2,attached_node=1,rail=1},
+	
+	mesecons = {
+		effector = {
+			action_on = function(pos, node)
 				minetest.env:get_meta(pos):set_string("cart_acceleration", "0.5")
 				-- Start the cart
 				for _,obj in ipairs(minetest.env:get_objects_inside_radius(pos, 1)) do
@@ -452,13 +465,11 @@ if minetest.get_modpath("mesecons") then
 						end
 					end
 				end
-			end
-		end)
-		
-		mesecon:register_on_signal_off(function(pos, node)
-			if cart_func:is_rail(pos) then
+			end,
+			
+			action_off = function(pos, node)
 				minetest.env:get_meta(pos):set_string("cart_acceleration", "0")
-			end
-		end)
-	end)
-end
+			end,
+		},
+	},
+})

@@ -25,8 +25,7 @@ end
 
 function cart_func:is_rail(p)
 	local nn = minetest.env:get_node(p).name
-	return nn == "default:rail" or
-			minetest.get_item_group(nn, "rail") ~= 0
+	return minetest.get_item_group(nn, "rail") ~= 0
 end
 
 function cart_func:is_int(z)
