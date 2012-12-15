@@ -57,7 +57,7 @@ function cart:on_punch(puncher, time_from_last_punch, tool_capabilities, directi
 		return
 	end
 	
-	if puncher:get_wielded_item():get_definition().type == "tool" then
+	if puncher:get_player_control().sneak then
 		self.object:remove()
 		puncher:get_inventory():add_item("main", "carts:cart")
 		return
