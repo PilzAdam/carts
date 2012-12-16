@@ -223,6 +223,35 @@ function cart:on_step(dtime)
 	-- Only if on a flat railway
 	if dir.y == 0 then
 		if math.abs(self.velocity.x) < 0.1 and  math.abs(self.velocity.z) < 0.1 then
+			-- Start the cart if powered from mesecons
+			local a = tonumber(minetest.env:get_meta(pos):get_string("cart_acceleration"))
+			if a then
+				for _,y in ipairs({0,-1,1}) do
+					for _,z in ipairs({1,-1}) do
+						if cart_func.v3:equal(self:get_rail_direction(self.object:getpos(), {x=0, y=y, z=z}), {x=0, y=y, z=z}) then
+							self.velocity = {
+								x = 0,
+								y = 0.2*y,
+								z = 0.2*z,
+							}
+							self.old_velocity = self.velocity
+							return
+						end
+					end
+					for _,x in ipairs({1,-1}) do
+						if cart_func.v3:equal(self:get_rail_direction(self.object:getpos(), {x=x, y=y, z=0}), {x=x, y=y, z=0}) then
+							self.velocity = {
+								x = 0.2*x,
+								y = 0.2*y,
+								z = 0,
+							}
+							self.old_velocity = self.velocity
+							return
+						end
+					end
+				end
+			end
+			
 			self.velocity = {x=0, y=0, z=0}
 			self.object:setvelocity(self.velocity)
 			self.old_velocity = self.velocity
@@ -433,38 +462,6 @@ minetest.register_node(":default:rail", {
 		effector = {
 			action_on = function(pos, node)
 				minetest.env:get_meta(pos):set_string("cart_acceleration", "0.5")
-				-- Start the cart
-				for _,obj in ipairs(minetest.env:get_objects_inside_radius(pos, 1)) do
-					if obj:get_luaentity() and obj:get_luaentity().name == "carts:cart" then
-						local self = obj:get_luaentity()
-						if cart_func.v3:equal(self.velocity, {x=0, y=0, z=0}) then
-							for _,y in ipairs({0,-1,1}) do
-								for _,z in ipairs({1,-1}) do
-									if cart_func.v3:equal(self:get_rail_direction(obj:getpos(), {x=0, y=y, z=z}), {x=0, y=y, z=z}) then
-										self.velocity = {
-											x = 0,
-											y = 0.2*y,
-											z = 0.2*z,
-										}
-										self.old_velocity = self.velocity
-										return
-									end
-								end
-								for _,x in ipairs({1,-1}) do
-									if cart_func.v3:equal(self:get_rail_direction(obj:getpos(), {x=x, y=y, z=0}), {x=x, y=y, z=0}) then
-										self.velocity = {
-											x = 0.2*x,
-											y = 0.2*y,
-											z = 0,
-										}
-										self.old_velocity = self.velocity
-										return
-									end
-								end
-							end
-						end
-					end
-				end
 			end,
 			
 			action_off = function(pos, node)
