@@ -1,4 +1,3 @@
-
 dofile(minetest.get_modpath("carts").."/functions.lua")
 
 --
@@ -448,6 +447,35 @@ minetest.register_node(":default:rail", {
 	tiles = {"default_rail.png", "default_rail_curved.png", "default_rail_t_junction.png", "default_rail_crossing.png"},
 	inventory_image = "default_rail.png",
 	wield_image = "default_rail.png",
+	paramtype = "light",
+	is_ground_content = true,
+	walkable = false,
+	selection_box = {
+		type = "fixed",
+                -- but how to specify the dimensions for curved and sideways rails?
+                fixed = {-1/2, -1/2, -1/2, 1/2, -1/2+1/16, 1/2},
+	},
+	groups = {bendy=2,snappy=1,dig_immediate=2,attached_node=1,rail=1},
+	
+	mesecons = {
+		effector = {
+			action_on = function(pos, node)
+				minetest.env:get_meta(pos):set_string("cart_acceleration", "0.5")
+			end,
+			
+			action_off = function(pos, node)
+				minetest.env:get_meta(pos):set_string("cart_acceleration", "0")
+			end,
+		},
+	},
+})
+
+minetest.register_node("carts:powerrail", {
+	description = "Powered Rail",
+	drawtype = "raillike",
+	tiles = {"default_pwr_rail.png", "default_pwr_rail_curved.png", "default_pwr_rail_t_junction.png", "default_pwr_rail_crossing.png"},
+	inventory_image = "default_pwr_rail.png",
+	wield_image = "default_pwr_rail.png",
 	paramtype = "light",
 	is_ground_content = true,
 	walkable = false,
