@@ -453,8 +453,25 @@ minetest.register_node(":default:rail", {
 	walkable = false,
 	selection_box = {
 		type = "fixed",
-                -- but how to specify the dimensions for curved and sideways rails?
-                fixed = {-1/2, -1/2, -1/2, 1/2, -1/2+1/16, 1/2},
+		-- but how to specify the dimensions for curved and sideways rails?
+		fixed = {-1/2, -1/2, -1/2, 1/2, -1/2+1/16, 1/2},
+	},
+	groups = {bendy=2,snappy=1,dig_immediate=2,attached_node=1,rail=1},
+})
+
+minetest.register_node("carts:powerrail", {
+	description = "Powered Rail",
+	drawtype = "raillike",
+	tiles = {"default_rail_pwr.png", "default_rail_curved_pwr.png", "default_rail_t_junction_pwr.png", "default_rail_crossing_pwr.png"},
+	inventory_image = "default_rail_pwr.png",
+	wield_image = "default_rail_pwr.png",
+	paramtype = "light",
+	is_ground_content = true,
+	walkable = false,
+	selection_box = {
+		type = "fixed",
+		-- but how to specify the dimensions for curved and sideways rails?
+		fixed = {-1/2, -1/2, -1/2, 1/2, -1/2+1/16, 1/2},
 	},
 	groups = {bendy=2,snappy=1,dig_immediate=2,attached_node=1,rail=1},
 	
@@ -462,6 +479,35 @@ minetest.register_node(":default:rail", {
 		effector = {
 			action_on = function(pos, node)
 				minetest.env:get_meta(pos):set_string("cart_acceleration", "0.5")
+			end,
+			
+			action_off = function(pos, node)
+				minetest.env:get_meta(pos):set_string("cart_acceleration", "0")
+			end,
+		},
+	},
+})
+
+minetest.register_node("carts:brakerail", {
+	description = "Brake Rail",
+	drawtype = "raillike",
+	tiles = {"default_rail_brk.png", "default_rail_curved_brk.png", "default_rail_t_junction_brk.png", "default_rail_crossing_brk.png"},
+	inventory_image = "default_rail_brk.png",
+	wield_image = "default_rail_brk.png",
+	paramtype = "light",
+	is_ground_content = true,
+	walkable = false,
+	selection_box = {
+		type = "fixed",
+		-- but how to specify the dimensions for curved and sideways rails?
+		fixed = {-1/2, -1/2, -1/2, 1/2, -1/2+1/16, 1/2},
+	},
+	groups = {bendy=2,snappy=1,dig_immediate=2,attached_node=1,rail=1},
+	
+	mesecons = {
+		effector = {
+			action_on = function(pos, node)
+				minetest.env:get_meta(pos):set_string("cart_acceleration", "-0.2")
 			end,
 			
 			action_off = function(pos, node)
