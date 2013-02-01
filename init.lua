@@ -1,4 +1,3 @@
-
 dofile(minetest.get_modpath("carts").."/functions.lua")
 
 --
@@ -12,7 +11,7 @@ local cart = {
 	mesh = "cart.x",
 	visual_size = {x=1, y=1},
 	textures = {"cart.png"},
-	
+
 	driver = nil,
 	velocity = {x=0, y=0, z=0},
 	old_pos = nil,
@@ -56,17 +55,17 @@ function cart:on_punch(puncher, time_from_last_punch, tool_capabilities, directi
 	if not puncher or not puncher:is_player() then
 		return
 	end
-	
+
 	if puncher:get_player_control().sneak then
 		self.object:remove()
 		puncher:get_inventory():add_item("main", "carts:cart")
 		return
 	end
-	
+
 	if puncher == self.driver then
 		return
 	end
-	
+
 	local d = cart_func:velocity_to_dir(direction)
 	local s = self.velocity
 	if time_from_last_punch > tool_capabilities.full_punch_interval then
@@ -89,21 +88,21 @@ end
 -- Returns the direction as a unit vector
 function cart:get_rail_direction(pos, dir)
 	local d = cart_func.v3:copy(dir)
-	
+
 	-- Check front
 	d.y = 0
 	local p = cart_func.v3:add(cart_func.v3:copy(pos), d)
 	if cart_func:is_rail(p) then
 		return d
 	end
-	
+
 	-- Check downhill
 	d.y = -1
 	p = cart_func.v3:add(cart_func.v3:copy(pos), d)
 	if cart_func:is_rail(p) then
 		return d
 	end
-	
+
 	-- Check uphill
 	d.y = 1
 	p = cart_func.v3:add(cart_func.v3:copy(pos), d)
@@ -111,12 +110,12 @@ function cart:get_rail_direction(pos, dir)
 		return d
 	end
 	d.y = 0
-	
+
 	-- Check left and right
 	local view_dir
 	local other_dir
 	local a
-	
+
 	if d.x == 0 and d.z ~= 0 then
 		view_dir = "z"
 		other_dir = "x"
@@ -136,7 +135,7 @@ function cart:get_rail_direction(pos, dir)
 	else
 		return {x=0, y=0, z=0}
 	end
-	
+
 	d[view_dir] = 0
 	d[other_dir] = a[1]
 	p = cart_func.v3:add(cart_func.v3:copy(pos), d)
@@ -160,7 +159,7 @@ function cart:get_rail_direction(pos, dir)
 		return d
 	end
 	d.y = 0
-	
+
 	return {x=0, y=0, z=0}
 end
 
@@ -168,21 +167,21 @@ function cart:calc_rail_direction(pos, vel)
 	local velocity = cart_func.v3:copy(vel)
 	local p = cart_func.v3:copy(pos)
 	if cart_func:is_int(p.x) and cart_func:is_int(p.z) then
-		
+
 		local dir = cart_func:velocity_to_dir(velocity)
 		local dir_old = cart_func.v3:copy(dir)
-		
+
 		dir = self:get_rail_direction(cart_func.v3:round(p), dir)
-		
+
 		local v = math.max(math.abs(velocity.x), math.abs(velocity.z))
 		velocity = {
 			x = v * dir.x,
 			y = v * dir.y,
 			z = v * dir.z,
 		}
-		
+
 		if cart_func.v3:equal(velocity, {x=0, y=0, z=0}) then
-			
+
 			-- First try this HACK
 			-- Move the cart on the rail if above or under it
 			if cart_func:is_rail(cart_func.v3:add(p, {x=0, y=1, z=0})) and vel.y >= 0 then
@@ -202,23 +201,23 @@ function cart:calc_rail_direction(pos, vel)
 				p = cart_func.v3:add(p, {x=0, y=-1, z=0})
 				return self:calc_rail_direction(p, vel)
 			end
-			
+
 			return {x=0, y=0, z=0}, p
 		end
-		
+
 		if not cart_func.v3:equal(dir, dir_old) then
 			return velocity, cart_func.v3:round(p)
 		end
-		
+
 	end
 	return velocity, p
 end
 
 function cart:on_step(dtime)
-	
+
 	local pos = self.object:getpos()
 	local dir = cart_func:velocity_to_dir(self.velocity)
-	
+
 	-- Stop the cart if the velocity is nearly 0
 	-- Only if on a flat railway
 	if dir.y == 0 then
@@ -251,7 +250,7 @@ function cart:on_step(dtime)
 					end
 				end
 			end
-			
+
 			self.velocity = {x=0, y=0, z=0}
 			self.object:setvelocity(self.velocity)
 			self.old_velocity = self.velocity
@@ -259,11 +258,11 @@ function cart:on_step(dtime)
 			return
 		end
 	end
-	
+
 	--
 	-- Set the new moving direction
 	--
-	
+
 	-- Recalcualte the rails that are passed since the last server step
 	local old_dir = cart_func:velocity_to_dir(self.old_velocity)
 	if old_dir.x ~= 0 then
@@ -301,12 +300,12 @@ function cart:on_step(dtime)
 			end
 		end
 	end
-	
+
 	-- Calculate the new step
 	self.velocity, pos = self:calc_rail_direction(pos, self.velocity)
 	self.object:setpos(pos)
 	dir = cart_func:velocity_to_dir(self.velocity)
-	
+
 	-- Accelerate or decelerate the cart according to the pitch and acceleration of the rail node
 	local a = tonumber(minetest.env:get_meta(pos):get_string("cart_acceleration"))
 	if not a then
@@ -330,14 +329,14 @@ function cart:on_step(dtime)
 			y = self.velocity.y + (a-0.03)*cart_func:get_sign(self.velocity.y),
 			z = self.velocity.z + (a-0.03)*cart_func:get_sign(self.velocity.z),
 		}
-			
+
 		-- Place the cart exactly on top of the rail
-		if cart_func:is_rail(cart_func.v3:round(pos)) then 
+		if cart_func:is_rail(cart_func.v3:round(pos)) then
 			self.object:setpos({x=pos.x, y=math.floor(pos.y+0.5), z=pos.z})
 			pos = self.object:getpos()
 		end
 	end
-	
+
 	-- Dont switch moving direction
 	-- Only if on flat railway
 	if dir.y == 0 then
@@ -351,7 +350,7 @@ function cart:on_step(dtime)
 			self.velocity.z = 0
 		end
 	end
-	
+
 	-- Allow only one moving direction (multiply the other one with 0)
 	dir = cart_func:velocity_to_dir(self.velocity)
 	self.velocity = {
@@ -359,7 +358,7 @@ function cart:on_step(dtime)
 		y = self.velocity.y,
 		z = math.abs(self.velocity.z) * dir.z,
 	}
-	
+
 	-- Move cart exactly on the rail
 	if dir.x ~= 0 and not cart_func:is_int(pos.z) then
 		pos.z = math.floor(0.5+pos.z)
@@ -368,7 +367,7 @@ function cart:on_step(dtime)
 		pos.x = math.floor(0.5+pos.x)
 		self.object:setpos(pos)
 	end
-	
+
 	-- Limit the velocity
 	if math.abs(self.velocity.x) > self.MAX_V then
 		self.velocity.x = self.MAX_V*cart_func:get_sign(self.velocity.x)
@@ -379,12 +378,12 @@ function cart:on_step(dtime)
 	if math.abs(self.velocity.z) > self.MAX_V then
 		self.velocity.z = self.MAX_V*cart_func:get_sign(self.velocity.z)
 	end
-	
+
 	self.object:setvelocity(self.velocity)
-	
+
 	self.old_pos = self.object:getpos()
 	self.old_velocity = cart_func.v3:copy(self.velocity)
-	
+
 	if dir.x < 0 then
 		self.object:setyaw(math.pi/2)
 	elseif dir.x > 0 then
@@ -394,7 +393,7 @@ function cart:on_step(dtime)
 	elseif dir.z > 0 then
 		self.object:setyaw(0)
 	end
-	
+
 	if dir.y == -1 then
 		self.object:set_animation({x=1, y=1}, 1, 0)
 	elseif dir.y == 1 then
@@ -402,7 +401,7 @@ function cart:on_step(dtime)
 	else
 		self.object:set_animation({x=0, y=0}, 1, 0)
 	end
-	
+
 end
 
 minetest.register_entity("carts:cart", cart)
@@ -412,7 +411,7 @@ minetest.register_craftitem("carts:cart", {
 	description = "Minecart",
 	inventory_image = minetest.inventorycube("cart_top.png", "cart_side.png", "cart_side.png"),
 	wield_image = "cart_side.png",
-	
+
 	on_place = function(itemstack, placer, pointed_thing)
 		if not pointed_thing.type == "node" then
 			return
@@ -474,17 +473,89 @@ minetest.register_node("carts:powerrail", {
 		fixed = {-1/2, -1/2, -1/2, 1/2, -1/2+1/16, 1/2},
 	},
 	groups = {bendy=2,snappy=1,dig_immediate=2,attached_node=1,rail=1},
-	
+
 	mesecons = {
 		effector = {
 			action_on = function(pos, node)
 				minetest.env:get_meta(pos):set_string("cart_acceleration", "0.5")
 			end,
-			
+
 			action_off = function(pos, node)
 				minetest.env:get_meta(pos):set_string("cart_acceleration", "0")
 			end,
 		},
+	},
+})
+
+minetest.register_node("carts:powerrail", {
+	description = "Powered Rail",
+	drawtype = "raillike",
+	tiles = {"default_rail_pwr.png", "default_rail_curved_pwr.png", "default_rail_t_junction_pwr.png", "default_rail_crossing_pwr.png"},
+	inventory_image = "default_rail_pwr.png",
+	wield_image = "default_rail_pwr.png",
+	paramtype = "light",
+	is_ground_content = true,
+	walkable = false,
+    after_place_node = function(pos)
+        minetest.env:get_meta(pos):set_string("cart_acceleration", "0.5")
+    end,
+    after_dig_node = function(pos)
+        minetest.env:get_meta(pos):set_string("cart_acceleration", "0")
+    end,
+	selection_box = {
+		type = "fixed",
+                -- but how to specify the dimensions for curved and sideways rails?
+                fixed = {-1/2, -1/2, -1/2, 1/2, -1/2+1/16, 1/2},
+	},
+	groups = {bendy=2,snappy=1,dig_immediate=2,attached_node=1,rail=1},
+
+	mesecons = {
+		effector = {
+			action_on = function(pos, node)
+				minetest.env:get_meta(pos):set_string("cart_acceleration", "0.5")
+			end,
+
+			action_off = function(pos, node)
+				minetest.env:get_meta(pos):set_string("cart_acceleration", "0")
+			end,
+		},
+		rules=mesecon.rules.flat
+	},
+})
+
+minetest.register_node("carts:brakerail", {
+	description = "Brake Rail",
+	drawtype = "raillike",
+	tiles = {"default_rail_brk.png", "default_rail_curved_brk.png", "default_rail_t_junction_brk.png", "default_rail_crossing_brk.png"},
+	inventory_image = "default_rail_brk.png",
+	wield_image = "default_rail_brk.png",
+	paramtype = "light",
+	is_ground_content = true,
+	walkable = false,
+    after_place_node = function(pos)
+        minetest.env:get_meta(pos):set_string("cart_acceleration", "-0.2")
+    end,
+    after_dig_node = function(pos)
+        minetest.env:get_meta(pos):set_string("cart_acceleration", "0")
+    end,
+	selection_box = {
+		type = "fixed",
+                -- but how to specify the dimensions for curved and sideways rails?
+                fixed = {-1/2, -1/2, -1/2, 1/2, -1/2+1/16, 1/2},
+	},
+	groups = {bendy=2,snappy=1,dig_immediate=2,attached_node=1,rail=1},
+
+	mesecons = {
+		effector = {
+			action_on = function(pos, node)
+				minetest.env:get_meta(pos):set_string("cart_acceleration", "0.5")
+			end,
+
+			action_off = function(pos, node)
+				minetest.env:get_meta(pos):set_string("cart_acceleration", "0")
+			end,
+		},
+		rules=mesecon.rules.flat
 	},
 })
 
