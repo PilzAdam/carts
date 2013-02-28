@@ -20,3 +20,6 @@ kddekadenz:
 Zeg9:
   cart.x
   cart.png
+
+rarkenin:
+  cart_rail_*.png
