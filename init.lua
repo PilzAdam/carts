@@ -442,6 +442,23 @@ minetest.register_craft({
 -- Mesecon support
 --
 
+get_rail_rules = function()
+	return {
+		{x = -1, y = -1, z = 0},
+		{x = -1, y = 0, z = 0},
+		{x = -1, y = 1, z = 0},
+		{x = 1, y = -1, z = 0},
+		{x = 1, y = 0, z = 0},
+		{x = 1, y = 1, z = 0},
+		{x = 0, y = -1, z = -1},
+		{x = 0, y = 0, z = -1},
+		{x = 0, y = 1, z = -1},
+		{x = 0, y = -1, z = 1},
+		{x = 0, y = 0, z = 1},
+		{x = 0, y = 1, z = 1}
+	}
+end
+
 minetest.register_node(":default:rail", {
 	description = "Rail",
 	drawtype = "raillike",
@@ -456,7 +473,7 @@ minetest.register_node(":default:rail", {
 		-- but how to specify the dimensions for curved and sideways rails?
 		fixed = {-1/2, -1/2, -1/2, 1/2, -1/2+1/16, 1/2},
 	},
-	groups = {bendy=2,snappy=1,dig_immediate=2,attached_node=1,rail=1},
+	groups = {bendy=2,snappy=1,dig_immediate=2,attached_node=1,rail=1,connect_to_raillike=1},
 })
 
 minetest.register_node("carts:powerrail", {
@@ -473,25 +490,46 @@ minetest.register_node("carts:powerrail", {
 		-- but how to specify the dimensions for curved and sideways rails?
 		fixed = {-1/2, -1/2, -1/2, 1/2, -1/2+1/16, 1/2},
 	},
-	groups = {bendy=2,snappy=1,dig_immediate=2,attached_node=1,rail=1},
-	
-	after_place_node = function(pos, placer, itemstack)
-		if not mesecon then
-			minetest.env:get_meta(pos):set_string("cart_acceleration", "0.5")
-		end
-	end,
+	groups = {bendy=2,snappy=1,dig_immediate=2,attached_node=1,rail=1,connect_to_raillike=1},
 	
 	mesecons = {
-		effector = {
-			action_on = function(pos, node)
-				minetest.env:get_meta(pos):set_string("cart_acceleration", "0.5")
-			end,
-			
-			action_off = function(pos, node)
-				minetest.env:get_meta(pos):set_string("cart_acceleration", "0")
-			end,
-		},
+		conductor = {
+                        state = mesecon.state.off,
+                        onstate = "carts:powerrail_on",
+                        rules = get_rail_rules()
+                }
+        },
+        on_construct = function(pos)
+                minetest.env:get_meta(pos):set_string("cart_acceleration", "0")
+        end
+})
+
+minetest.register_node("carts:powerrail_on", {
+	description = "Powered Rail (you hacker you!)",
+	drawtype = "raillike",
+	tiles = {"carts_rail_pwr_on.png", "carts_rail_curved_pwr_on.png", "carts_rail_t_junction_pwr_on.png", "carts_rail_crossing_pwr_on.png"},
+	inventory_image = "carts_rail_pwr_on.png",
+	wield_image = "carts_rail_pwr_on.png",
+	paramtype = "light",
+	is_ground_content = true,
+	walkable = false,
+	selection_box = {
+		type = "fixed",
+		-- but how to specify the dimensions for curved and sideways rails?
+		fixed = {-1/2, -1/2, -1/2, 1/2, -1/2+1/16, 1/2},
 	},
+	groups = {bendy=2,snappy=1,dig_immediate=2,attached_node=1,rail=1,connect_to_raillike=1,not_in_creative_inventory=1},
+	drop = "carts:powerrail",
+	mesecons = {
+		conductor = {
+                        state = mesecon.state.on,
+                        offstate = "carts:powerrail",
+                        rules = get_rail_rules()
+                }
+        },
+        on_construct = function(pos)
+                minetest.env:get_meta(pos):set_string("cart_acceleration", "0.5")
+        end
 })
 
 minetest.register_node("carts:brakerail", {
@@ -508,25 +546,46 @@ minetest.register_node("carts:brakerail", {
 		-- but how to specify the dimensions for curved and sideways rails?
 		fixed = {-1/2, -1/2, -1/2, 1/2, -1/2+1/16, 1/2},
 	},
-	groups = {bendy=2,snappy=1,dig_immediate=2,attached_node=1,rail=1},
-	
-	after_place_node = function(pos, placer, itemstack)
-		if not mesecon then
-			minetest.env:get_meta(pos):set_string("cart_acceleration", "-0.2")
-		end
-	end,
-	
+	groups = {bendy=2,snappy=1,dig_immediate=2,attached_node=1,rail=1,connect_to_raillike=1},
+
 	mesecons = {
-		effector = {
-			action_on = function(pos, node)
-				minetest.env:get_meta(pos):set_string("cart_acceleration", "-0.2")
-			end,
-			
-			action_off = function(pos, node)
-				minetest.env:get_meta(pos):set_string("cart_acceleration", "0")
-			end,
-		},
+                conductor = {
+                        state = mesecon.state.off,
+                        onstate = "carts:brakerail_on",
+                        rules = get_rail_rules()
+                }
+        },
+        on_construct = function(pos)
+                minetest.env:get_meta(pos):set_string("cart_acceleration", "0")
+        end
+})
+
+minetest.register_node("carts:brakerail_on", {
+	description = "Brake Rail (you hacker you!)",
+	drawtype = "raillike",
+	tiles = {"carts_rail_brk_on.png", "carts_rail_curved_brk_on.png", "carts_rail_t_junction_brk_on.png", "carts_rail_crossing_brk_on.png"},
+	inventory_image = "carts_rail_brk_on.png",
+	wield_image = "carts_rail_brk_on.png",
+	paramtype = "light",
+	is_ground_content = true,
+	walkable = false,
+	selection_box = {
+		type = "fixed",
+		-- but how to specify the dimensions for curved and sideways rails?
+		fixed = {-1/2, -1/2, -1/2, 1/2, -1/2+1/16, 1/2},
 	},
+	groups = {bendy=2,snappy=1,dig_immediate=2,attached_node=1,rail=1,connect_to_raillike=1,not_in_creative_inventory=1},
+	drop = "carts:brakerail",
+	mesecons = {
+                conductor = {
+                        state = mesecon.state.on,
+                        offstate = "carts:brakerail",
+                        rules = get_rail_rules()
+                }
+        },
+        on_construct = function(pos)
+                minetest.env:get_meta(pos):set_string("cart_acceleration", "-0.2")
+        end
 })
 
 minetest.register_craft({
