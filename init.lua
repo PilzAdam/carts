@@ -443,20 +443,14 @@ minetest.register_craft({
 --
 
 get_rail_rules = function()
-	return {
-		{x = -1, y = -1, z = 0},
-		{x = -1, y = 0, z = 0},
-		{x = -1, y = 1, z = 0},
-		{x = 1, y = -1, z = 0},
-		{x = 1, y = 0, z = 0},
-		{x = 1, y = 1, z = 0},
-		{x = 0, y = -1, z = -1},
-		{x = 0, y = 0, z = -1},
-		{x = 0, y = 1, z = -1},
-		{x = 0, y = -1, z = 1},
-		{x = 0, y = 0, z = 1},
-		{x = 0, y = 1, z = 1}
-	}
+	rules = {}
+	for y = -1, 1 do
+		table.insert(rules,{x = -1, y = y, z = 0})
+		table.insert(rules,{x = 1, y = y, z = 0})
+		table.insert(rules,{x = 0, y = y, z = -1})
+		table.insert(rules,{x = 0, y = y, z = 1})
+	end
+	return rules
 end
 
 minetest.register_node(":default:rail", {
