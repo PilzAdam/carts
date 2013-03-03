@@ -225,7 +225,7 @@ function cart:on_step(dtime)
 		if math.abs(self.velocity.x) < 0.1 and  math.abs(self.velocity.z) < 0.1 then
 			-- Start the cart if powered from mesecons
 			local a = tonumber(minetest.env:get_meta(pos):get_string("cart_acceleration"))
-			if a then
+			if a and a ~= 0 then
 				for _,y in ipairs({0,-1,1}) do
 					for _,z in ipairs({1,-1}) do
 						if cart_func.v3:equal(self:get_rail_direction(self.object:getpos(), {x=0, y=y, z=z}), {x=0, y=y, z=z}) then
