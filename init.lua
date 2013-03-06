@@ -445,7 +445,7 @@ minetest.register_craft({
 minetest.register_node(":default:rail", {
 	description = "Rail",
 	drawtype = "raillike",
-	tiles = {"default_rail.png", "default_rail_curved.png", "default_rail_t_junction.png", "default_rail_crossing.png"},
+	tiles = {"default_rail.png", "default_rail_curved.png", "default_rail_t_junction.png", "default_rail_crossing.png", "default_rail_diagonal.png", "default_rail_diagonal_end.png"},
 	inventory_image = "default_rail.png",
 	wield_image = "default_rail.png",
 	paramtype = "light",
@@ -462,7 +462,7 @@ minetest.register_node(":default:rail", {
 minetest.register_node("carts:powerrail", {
 	description = "Powered Rail",
 	drawtype = "raillike",
-	tiles = {"carts_rail_pwr.png", "carts_rail_curved_pwr.png", "carts_rail_t_junction_pwr.png", "carts_rail_crossing_pwr.png"},
+	tiles = {"carts_rail_pwr.png", "carts_rail_curved_pwr.png", "carts_rail_t_junction_pwr.png", "carts_rail_crossing_pwr.png", "carts_rail_diagonal_pwr.png", "carts_rail_diagonal_end_pwr.png"},
 	inventory_image = "carts_rail_pwr.png",
 	wield_image = "carts_rail_pwr.png",
 	paramtype = "light",
@@ -497,7 +497,7 @@ minetest.register_node("carts:powerrail", {
 minetest.register_node("carts:brakerail", {
 	description = "Brake Rail",
 	drawtype = "raillike",
-	tiles = {"carts_rail_brk.png", "carts_rail_curved_brk.png", "carts_rail_t_junction_brk.png", "carts_rail_crossing_brk.png"},
+	tiles = {"carts_rail_brk.png", "carts_rail_curved_brk.png", "carts_rail_t_junction_brk.png", "carts_rail_crossing_brk.png", "carts_rail_diagonal_brk.png", "carts_rail_diagonal_end_brk.png"},
 	inventory_image = "carts_rail_brk.png",
 	wield_image = "carts_rail_brk.png",
 	paramtype = "light",
