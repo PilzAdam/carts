@@ -59,7 +59,14 @@ function cart:on_punch(puncher, time_from_last_punch, tool_capabilities, directi
 	
 	if puncher:get_player_control().sneak then
 		self.object:remove()
-		puncher:get_inventory():add_item("main", "carts:cart")
+		local inv = puncher:get_inventory()
+		if minetest.setting_getbool("creative_mode") then
+			if not inv:contains_item("main", "carts:cart") then
+				inv:add_item("main", "carts:cart")
+			end
+		else
+			inv:add_item("main", "carts:cart")
+		end
 		return
 	end
 	
@@ -419,11 +426,15 @@ minetest.register_craftitem("carts:cart", {
 		end
 		if cart_func:is_rail(pointed_thing.under) then
 			minetest.env:add_entity(pointed_thing.under, "carts:cart")
-			itemstack:take_item()
+			if not minetest.setting_getbool("creative_mode") then
+				itemstack:take_item()
+			end
 			return itemstack
 		elseif cart_func:is_rail(pointed_thing.above) then
 			minetest.env:add_entity(pointed_thing.above, "carts:cart")
-			itemstack:take_item()
+			if not minetest.setting_getbool("creative_mode") then
+				itemstack:take_item()
+			end
 			return itemstack
 		end
 	end,
