@@ -17,7 +17,8 @@ local cart = {
 	velocity = {x=0, y=0, z=0},
 	old_pos = nil,
 	old_velocity = nil,
-	MAX_V = 15, -- Limit of the velocity
+	pre_stop_dir = nil,
+	MAX_V = 8, -- Limit of the velocity
 }
 
 function cart:on_rightclick(clicker)
@@ -40,6 +41,9 @@ function cart:on_activate(staticdata, dtime_s)
 		if tmp then
 			self.velocity = tmp.velocity
 		end
+		if tmp and tmp.pre_stop_dir then
+			self.pre_stop_dir = tmp.pre_stop_dir
+		end
 	end
 	self.old_pos = self.object:getpos()
 	self.old_velocity = self.velocity
@@ -48,6 +52,7 @@ end
 function cart:get_staticdata()
 	return minetest.serialize({
 		velocity = self.velocity,
+		pre_stop_dir = self.pre_stop_dir,
 	})
 end
 
@@ -226,6 +231,10 @@ function cart:on_step(dtime)
 	local pos = self.object:getpos()
 	local dir = cart_func:velocity_to_dir(self.velocity)
 	
+	if not cart_func.v3:equal(self.velocity, {x=0,y=0,z=0}) then
+		self.pre_stop_dir = cart_func:velocity_to_dir(self.velocity)
+	end
+	
 	-- Stop the cart if the velocity is nearly 0
 	-- Only if on a flat railway
 	if dir.y == 0 then
@@ -233,6 +242,15 @@ function cart:on_step(dtime)
 			-- Start the cart if powered from mesecons
 			local a = tonumber(minetest.env:get_meta(pos):get_string("cart_acceleration"))
 			if a and a ~= 0 then
+				if self.pre_stop_dir and cart_func.v3:equal(self:get_rail_direction(self.object:getpos(), self.pre_stop_dir), self.pre_stop_dir) then
+					self.velocity = {
+						x = self.pre_stop_dir.x * 0.2,
+						y = self.pre_stop_dir.y * 0.2,
+						z = self.pre_stop_dir.z * 0.2,
+					}
+					self.old_velocity = self.velocity
+					return
+				end
 				for _,y in ipairs({0,-1,1}) do
 					for _,z in ipairs({1,-1}) do
 						if cart_func.v3:equal(self:get_rail_direction(self.object:getpos(), {x=0, y=y, z=z}), {x=0, y=y, z=z}) then
