@@ -240,7 +240,7 @@ function cart:on_step(dtime)
 	if dir.y == 0 then
 		if math.abs(self.velocity.x) < 0.1 and  math.abs(self.velocity.z) < 0.1 then
 			-- Start the cart if powered from mesecons
-			local a = tonumber(minetest.env:get_meta(pos):get_string("cart_acceleration"))
+			local a = tonumber(minetest.get_meta(pos):get_string("cart_acceleration"))
 			if a and a ~= 0 then
 				if self.pre_stop_dir and cart_func.v3:equal(self:get_rail_direction(self.object:getpos(), self.pre_stop_dir), self.pre_stop_dir) then
 					self.velocity = {
@@ -333,7 +333,7 @@ function cart:on_step(dtime)
 	dir = cart_func:velocity_to_dir(self.velocity)
 	
 	-- Accelerate or decelerate the cart according to the pitch and acceleration of the rail node
-	local a = tonumber(minetest.env:get_meta(pos):get_string("cart_acceleration"))
+	local a = tonumber(minetest.get_meta(pos):get_string("cart_acceleration"))
 	if not a then
 		a = 0
 	end
@@ -443,13 +443,13 @@ minetest.register_craftitem("carts:cart", {
 			return
 		end
 		if cart_func:is_rail(pointed_thing.under) then
-			minetest.env:add_entity(pointed_thing.under, "carts:cart")
+			minetest.add_entity(pointed_thing.under, "carts:cart")
 			if not minetest.setting_getbool("creative_mode") then
 				itemstack:take_item()
 			end
 			return itemstack
 		elseif cart_func:is_rail(pointed_thing.above) then
-			minetest.env:add_entity(pointed_thing.above, "carts:cart")
+			minetest.add_entity(pointed_thing.above, "carts:cart")
 			if not minetest.setting_getbool("creative_mode") then
 				itemstack:take_item()
 			end
@@ -506,18 +506,18 @@ minetest.register_node("carts:powerrail", {
 	
 	after_place_node = function(pos, placer, itemstack)
 		if not mesecon then
-			minetest.env:get_meta(pos):set_string("cart_acceleration", "0.5")
+			minetest.get_meta(pos):set_string("cart_acceleration", "0.5")
 		end
 	end,
 	
 	mesecons = {
 		effector = {
 			action_on = function(pos, node)
-				minetest.env:get_meta(pos):set_string("cart_acceleration", "0.5")
+				minetest.get_meta(pos):set_string("cart_acceleration", "0.5")
 			end,
 			
 			action_off = function(pos, node)
-				minetest.env:get_meta(pos):set_string("cart_acceleration", "0")
+				minetest.get_meta(pos):set_string("cart_acceleration", "0")
 			end,
 		},
 	},
@@ -541,18 +541,18 @@ minetest.register_node("carts:brakerail", {
 	
 	after_place_node = function(pos, placer, itemstack)
 		if not mesecon then
-			minetest.env:get_meta(pos):set_string("cart_acceleration", "-0.2")
+			minetest.get_meta(pos):set_string("cart_acceleration", "-0.2")
 		end
 	end,
 	
 	mesecons = {
 		effector = {
 			action_on = function(pos, node)
-				minetest.env:get_meta(pos):set_string("cart_acceleration", "-0.2")
+				minetest.get_meta(pos):set_string("cart_acceleration", "-0.2")
 			end,
 			
 			action_off = function(pos, node)
-				minetest.env:get_meta(pos):set_string("cart_acceleration", "0")
+				minetest.get_meta(pos):set_string("cart_acceleration", "0")
 			end,
 		},
 	},
