@@ -193,7 +193,7 @@ function cart:calc_rail_direction(pos, vel)
 			z = v * dir.z,
 		}
 		
-		if cart_func.v3:equal(velocity, {x=0, y=0, z=0}) then
+		if cart_func.v3:equal(velocity, {x=0, y=0, z=0}) and not cart_func:is_rail(p) then
 			
 			-- First try this HACK
 			-- Move the cart on the rail if above or under it
