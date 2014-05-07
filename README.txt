@@ -1,6 +1,7 @@
 Minetest 0.4 mod: carts
 =======================
 by PilzAdam
+This version is modified by Kilarin (Donald Hines), all changes CC-0
 
 License of source code:
 -----------------------
