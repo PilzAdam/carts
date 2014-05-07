@@ -20,7 +20,7 @@ local cart = {
 	pre_stop_dir = nil,
   MAX_V = 8, -- Limit of the velocity --
   TARGET_TOUR_V = 4.5, -- target touring velocity --
-  railcount=0, 
+  railcount=0,
   ignorekeypos=nil,
   lockyaw=false,
   yawtarget=nil,
@@ -70,7 +70,7 @@ function cart:on_punch(puncher, time_from_last_punch, tool_capabilities, directi
 	end
 
 	if puncher:get_player_control().sneak then
-    print("cart: end pos="..pos_to_string(vector.round(self.object:getpos())).." railcount="..self.railcount) 
+    print("cart: end pos="..pos_to_string(vector.round(self.object:getpos())).." railcount="..self.railcount)
 		self.object:remove()
 		local inv = puncher:get_inventory()
 		if minetest.setting_getbool("creative_mode") then
@@ -118,7 +118,7 @@ function cart:on_punch(puncher, time_from_last_punch, tool_capabilities, directi
 			self.velocity.z = 6*cart_func:get_sign(self.velocity.z)
 		end
 	end
-end 
+end
 
 
 
@@ -164,16 +164,16 @@ function cart:get_rail_direction(pos, dir)
   if self.ignorekeypos then --ignorekeypos was set
     if cart_func.v3:equal(self.ignorekeypos,pos) then
       ignorekeys=true --if still at same position, ignore left and right keys
-    else 
+    else
       self.ignorekeypos=nil --if ignorekeypos was set but pos does not match anymore, clear it
     end
   end
-    
-  local ctrl=nil    
+
+  local ctrl=nil
   if self.driver and not ignorekeys then
     ctrl = self.driver:get_player_control()
   end
-    
+
   if ctrl and ctrl.left then --left key pressed, check left first
     if cart_func:check_rail_in_direction(pos,left) then
       self.ignorekeypos=cart_func.v3:copy(pos) --ignore keys until pos changes
@@ -221,6 +221,7 @@ end  --get_rail_direction
 function cart:calc_rail_direction(pos, vel)
 	local velocity = cart_func.v3:copy(vel)
 	local p = cart_func.v3:copy(pos)
+
 	if cart_func:is_int(p.x) and cart_func:is_int(p.z) then
 
 		local dir = cart_func:velocity_to_dir(velocity)
@@ -235,7 +236,8 @@ function cart:calc_rail_direction(pos, vel)
 			z = v * dir.z,
 		}
 
-		if cart_func.v3:equal(velocity, {x=0, y=0, z=0}) then
+    --if cart_func.v3:equal(velocity, {x=0, y=0, z=0}) then
+		if cart_func.v3:equal(velocity, {x=0, y=0, z=0}) and not cart_func:is_rail(p) then
 
 			-- First try this HACK
 			-- Move the cart on the rail if above or under it
@@ -260,7 +262,7 @@ function cart:calc_rail_direction(pos, vel)
 			return {x=0, y=0, z=0}, p
 		end
 
-		if not cart_func.v3:equal(dir, dir_old) then       
+		if not cart_func.v3:equal(dir, dir_old) then
 			return velocity, cart_func.v3:round(p)
 		end
 
@@ -283,8 +285,10 @@ function cart:on_step(dtime)
 
 	local pos = self.object:getpos()
 	local dir = cart_func:velocity_to_dir(self.velocity)
+  --minetest.chat_send_all("*!*carts: on_step top pos="..pos_to_string(pos).." dir="..pos_to_string(dir).." vel="..pos_to_string(self.velocity))
+  --print("*!*carts:on_step top pos="..pos_to_string(pos).." dir="..pos_to_string(dir).." vel="..pos_to_string(self.velocity))
 
-  --*!*debug
+  --count rails to put in debug.txt
   if self.old_pos then
     local cmp_old=vector.round(self.old_pos)
     local cmp_new=vector.round(pos)
@@ -293,25 +297,24 @@ function cart:on_step(dtime)
       --local a = tonumber(minetest.env:get_meta(pos):get_string("cart_acceleration"))
       --local railtype=""
       --if a and a>0 then railtype="power" end
-      --minetest.chat_send_all("-- cart pos="..pos_to_string(vector.round(pos)).." railcount="..self.railcount.." vel="..pos_to_string(self.velocity).." "..railtype)  --*!*debug
+      --minetest.chat_send_all("-- cart pos="..pos_to_string(vector.round(pos)).." railcount="..self.railcount.." vel="..pos_to_string(self.velocity).." "..railtype)  
     end
   end
-  --*!*debug
-  
-  local ctrl=nil    
+
+  local ctrl=nil
   if self.driver then
     ctrl = self.driver:get_player_control()
     if ctrl and ctrl.jump and not self.lockyaw then
       self.lockyaw=true
       self.yawtarget=self.object:getyaw()
-      minetest.chat_send_player(self.driver:get_player_name(),"cart: player view locked to cart, hit SNEAK to unlock")  
+      minetest.chat_send_player(self.driver:get_player_name(),"cart: player view locked to cart, hit SNEAK to unlock")
     elseif ctrl and ctrl.sneak and self.lockyaw then
       self.lockyaw=false
-      minetest.chat_send_player(self.driver:get_player_name(),"cart: player view NOT locked to cart, hit JUMP to lock")        
+      minetest.chat_send_player(self.driver:get_player_name(),"cart: player view NOT locked to cart, hit JUMP to lock")
     end
-  end --check lockyaw if self.driver  
-     
-      
+  end --check lockyaw if self.driver
+
+
 
 	if not cart_func.v3:equal(self.velocity, {x=0,y=0,z=0}) then
 		self.pre_stop_dir = cart_func:velocity_to_dir(self.velocity)
@@ -319,6 +322,7 @@ function cart:on_step(dtime)
 
 	-- Stop the cart if the velocity is nearly 0
 	-- Only if on a flat railway
+
 	if dir.y == 0 then
 		if math.abs(self.velocity.x) < 0.1 and  math.abs(self.velocity.z) < 0.1 then
 			-- Start the cart if powered from mesecons
@@ -463,14 +467,14 @@ function cart:on_step(dtime)
     a=a*acelordecl
   end -- if t>0
 
-  --check if down arrow is being pressed (hand break)     
+  --check if down arrow is being pressed (hand break)
   if self.driver then
     local ctrl = self.driver:get_player_control()
     if ctrl and ctrl.down then
-      a=a-0.1 --same as uphill 
-      
-    end --if hand break  
-  end --if self.driver  
+      a=a-0.1 --same as uphill
+
+    end --if hand break
+  end --if self.driver
 
 	if self.velocity.y < 0 then
 		self.velocity = {
@@ -489,7 +493,7 @@ function cart:on_step(dtime)
 			x = self.velocity.x + (a-0.03)*cart_func:get_sign(self.velocity.x),
 			y = self.velocity.y + (a-0.03)*cart_func:get_sign(self.velocity.y),
 			z = self.velocity.z + (a-0.03)*cart_func:get_sign(self.velocity.z),
-		}	      
+		}
 
 		-- Place the cart exactly on top of the rail
 		if cart_func:is_rail(cart_func.v3:round(pos)) then
@@ -519,7 +523,6 @@ function cart:on_step(dtime)
 		y = self.velocity.y,
 		z = math.abs(self.velocity.z) * dir.z,
 	}
-
 
 	-- Move cart exactly on the rail
 	if dir.x ~= 0 and not cart_func:is_int(pos.z) then
@@ -556,33 +559,33 @@ function cart:on_step(dtime)
 	elseif dir.z > 0 then
 		self.object:setyaw(0)
 	end
-  
+
   local newyaw=self.object:getyaw()
   --now if driver and lockyaw, change drivers direction.
   if self.driver and self.lockyaw then
     if oldyaw~=newyaw then
       self.yawtarget=newyaw  --set new target
       --print("--Cart yawtarget set "..self.yawtarget)
-    end      
+    end
     local playeryaw=self.driver:get_look_yaw()-1.57
     if playeryaw<0 then playeryaw=playeryaw+(math.pi*2) end
     if self.yawtarget and playeryaw ~= self.yawtarget  then
       local diff = self.yawtarget - playeryaw
       if diff>math.pi then
         diff=diff-(2*math.pi)
-      elseif diff<(-math.pi) then 
+      elseif diff<(-math.pi) then
         diff=diff+(2*math.pi)
-      end  
+      end
       yawdir=cart_func:get_sign(diff)
       local step=self.YAW_STEP
       if math.abs(diff)<=self.YAW_STEP then
       step=diff
         self.yawtarget=nil
-      end         
+      end
       local setyaw=playeryaw+(step*yawdir)
       self.driver:set_look_yaw(setyaw)
     end --move yaw
-  end --lockyaw set  
+  end --lockyaw set
 
 	if dir.y == -1 then
 		self.object:set_animation({x=1, y=1}, 1, 0)
