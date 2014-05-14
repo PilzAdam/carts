@@ -25,20 +25,21 @@ end
 
 function cart_func:is_rail(p)
 	local nn = minetest.env:get_node(p).name
-  --print("*!* is_rail p x=",p.x," y=",p.y," z=",p.z," nn=",nn," group rail=", minetest.get_item_group(nn, "rail"))
-  if nn == "ignore" then
-    nn=cart_func:get_content_voxel(p)
-    print("carts: is_rail hit ignore, trying again with get_content: now nn=",nn," group rail=", minetest.get_item_group(nn, "rail"),"p x=",p.x," y=",p.y," z=",p.z)
-  end
+	if nn == "ignore" then
+		nn=cart_func:get_content_voxel(p)
+		print("carts: is_rail hit ignore, trying again with get_content: now nn=",nn," group rail=", minetest.get_item_group(nn, "rail")," p="..cart_func:pos_to_string(p))
+	end
 	return minetest.get_item_group(nn, "rail") ~= 0
 end
 
+--dir is a vector that indicates the direction to the rail to be checked.
+--so, for example, pos={10,20,30} dir={-1,0,0} will check for rail pos {9,20,30}
 function cart_func:check_rail_in_direction(pos, dir)
 	local p = cart_func.v3:add(pos, dir)
 	if cart_func:is_rail(p) then
 		return true
 	else
-    return false
+		return false
 	end
 end -- cart:check_rail_in_direction
 
@@ -48,15 +49,19 @@ function cart_func:is_int(z)
 	return math.abs(math.floor(z+0.5)-z) <= 0.1
 end
 
+
 cart_func.v3 = {}
+
 
 function cart_func.v3:add(v1, v2)
 	return {x=v1.x+v2.x, y=v1.y+v2.y, z=v1.z+v2.z}
 end
 
+
 function cart_func.v3:copy(v)
 	return {x=v.x, y=v.y, z=v.z}
 end
+
 
 function cart_func.v3:round(v)
 	return {
@@ -66,24 +71,41 @@ function cart_func.v3:round(v)
 	}
 end
 
+
 function cart_func.v3:equal(v1, v2)
 	return v1.x == v2.x and v1.y == v2.y and v1.z == v2.z
 end
 
 
+--by minermoder27, used by is_rail ONLY when it gets "ignore"
 function cart_func:get_content_voxel(pos)
-    local t1 = os.clock()
-    local vm = minetest.get_voxel_manip()
-    local pos1, pos2 = vm:read_from_map(vector.add(pos, {x=-1,y=-1,z=-1}),vector.add(pos, {x=1,y=1,z=1}))
-    local a = VoxelArea:new{
-        MinEdge=pos1,
-        MaxEdge=pos2,
-    }
+		local t1 = os.clock()
+		local vm = minetest.get_voxel_manip()
+		local pos1, pos2 = vm:read_from_map(vector.add(pos, {x=-1,y=-1,z=-1}),vector.add(pos, {x=1,y=1,z=1}))
+		local a = VoxelArea:new{
+				MinEdge=pos1,
+				MaxEdge=pos2,
+		}
 
-    local data = vm:get_data()
-    local vi = a:indexp(pos)
-    local railid = data[vi]
-    local real_name = minetest.get_name_from_content_id(railid)
-    print(string.format("voxel-ing rail: elapsed time: %.2fms", (os.clock() - t1) * 1000))
-    return real_name
-end
+		local data = vm:get_data()
+		local vi = a:indexp(pos)
+		local railid = data[vi]
+		local real_name = minetest.get_name_from_content_id(railid)
+		print(string.format("voxel-ing rail: elapsed time: %.2fms", (os.clock() - t1) * 1000))
+		return real_name
+end --get_content_voxel
+
+
+function cart_func:round_digits(num,digits)
+	return math.floor(num*(10^digits)+0.5)/(10^digits)
+end --round_digits
+
+
+--because built in pos_to_string doesn't handle nil
+--this also rounds to 2 digits
+function cart_func:pos_to_string(pos)
+	if pos==nil then return "(nil)"
+	else return "(" .. cart_func:round_digits(pos.x,2) .. "," .. cart_func:round_digits(pos.y,2) .. "," .. cart_func:round_digits(pos.z,2) .. ")"
+	end --pos==nill
+end --pos_to_string
+

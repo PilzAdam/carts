@@ -9,9 +9,11 @@ modifications include:
                SNEAK unlock the users view from the cart
   Touring Rails: Try to maintain a speed of 4.5
   Chat notification of controls when cart is placed
-  Track rail count in debug.txt  
+  Track rail count in debug.txt
   punch by driver patch from spillz
-  get_voxel when hit ignore patch by minermoder27  
+  get_voxel when hit ignore patch by minermoder27
+  searches further up and down for rail when cart falls off rails in order to
+    avoid cart getting stuck above or below rails.
 
 License of source code:
 -----------------------
