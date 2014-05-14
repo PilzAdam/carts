@@ -5,6 +5,8 @@
 
 cart_func = {}
 
+dofile(minetest.get_modpath("carts").."/voxelgetter.lua")
+
 function cart_func:get_sign(z)
 	if z == 0 then
 		return 0
@@ -25,6 +27,10 @@ end
 
 function cart_func:is_rail(p)
 	local nn = minetest.env:get_node(p).name
+	if nn=="ignore" then
+		print("oops")
+		nn=cart_func:get_content_voxel(p)
+	end
 	return minetest.get_item_group(nn, "rail") ~= 0
 end
 
