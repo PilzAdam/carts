@@ -10,6 +10,11 @@ License of media (textures, sounds and models):
 -----------------------------------------------
 CC-0
 
+Authors of lua:
+---------------
+bas080
+  Crafts using default:rail
+
 Authors of media files:
 -----------------------
 kddekadenz:
