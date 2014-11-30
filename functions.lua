@@ -24,7 +24,7 @@ function cart_func:velocity_to_dir(v)
 end
 
 function cart_func:is_rail(p)
-	local nn = minetest.env:get_node(p).name
+	local nn = minetest.get_node(p).name
 	return minetest.get_item_group(nn, "rail") ~= 0
 end
 
