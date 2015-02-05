@@ -28,9 +28,17 @@ function cart:on_rightclick(clicker)
 	if self.driver and clicker == self.driver then
 		self.driver = nil
 		clicker:set_detach()
+		default.player_attached[clicker:get_player_name()] = false
+		clicker:set_eye_offset({x=0,y=0,z=0}, {x=0,y=0,z=0})
+		default.player_set_animation(clicker, "stand", 30)
 	elseif not self.driver then
 		self.driver = clicker
 		clicker:set_attach(self.object, "", {x=0,y=5,z=0}, {x=0,y=0,z=0})
+		default.player_attached[clicker:get_player_name()] = true
+		clicker:set_eye_offset({x=0,y=-7,z=2}, {x=0,y=0,z=0})
+		minetest.after(0.2, function()
+			default.player_set_animation(clicker, "sit", 30)
+		end)
 	end
 end
 
