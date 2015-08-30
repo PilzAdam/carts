@@ -701,14 +701,14 @@ minetest.register_craft({
 	recipe = {
 		{"default:steel_ingot", "mesecons_materials:silicon", "default:steel_ingot"},
 		{"default:steel_ingot", "default:stick", "default:steel_ingot"},
-		{"default:steel_ingot", "", "default:steel_ingot"},
+		{"default:steel_ingot", "default:mese_crystal_fragment", "default:steel_ingot"},
 	}
 })
 
 minetest.register_craft({
 	output = "carts:detectorrail_off 2",
 	recipe = {
-		{"default:steel_ingot", "", "default:steel_ingot"},
+		{"default:steel_ingot", "default:mese_crystal_fragment", "default:steel_ingot"},
 		{"default:steel_ingot", "default:stick", "default:steel_ingot"},
 		{"default:steel_ingot", "mesecons_materials:silicon", "default:steel_ingot"},
 	}
