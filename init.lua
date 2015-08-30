@@ -613,8 +613,8 @@ minetest.register_node("carts:detectorrail_off", {
 
 	mesecons = {
 		receptor = {
-			state = mesecon.state.off,
-			rules = mesecon.rules.default,
+			state = mesecon and mesecon.state.off,
+			rules = mesecon and mesecon.rules.default,
 		},
 	},
 })
@@ -639,8 +639,8 @@ minetest.register_node("carts:detectorrail_on", {
 
 	mesecons = {
 		receptor = {
-			state = mesecon.state.on,
-			rules = mesecon.rules.default,
+			state = mesecon and mesecon.state.on,
+			rules = mesecon and mesecon.rules.default,
 		},
 	},
 })
