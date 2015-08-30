@@ -6,6 +6,7 @@ dofile(minetest.get_modpath("carts").."/functions.lua")
 --
 
 local cart = {
+	is_cart = true,		-- To check, wheather an entity is a cart
 	physical = false,
 	collisionbox = {-0.5,-0.5,-0.5, 0.5,0.5,0.5},
 	visual = "mesh",
@@ -47,6 +48,16 @@ function cart:on_activate(staticdata, dtime_s)
 	end
 	self.old_pos = self.object:getpos()
 	self.old_velocity = self.velocity
+
+	if (mesecon) then
+		-- Check, wheather the cart is over a detector rail
+		local pos = self.old_pos
+		local node = minetest.get_node_or_nil(pos)
+		if (node and node.name == "carts:detectorrail_off") then
+			minetest.swap_node(pos, {name = "carts:detectorrail_on"})
+			mesecon.receptor_on(pos)
+		end
+	end
 end
 
 function cart:get_staticdata()
@@ -428,7 +439,16 @@ function cart:on_step(dtime)
 		self.object:set_animation({x=0, y=0}, 1, 0)
 	end
 	
+	if (mesecon) then
+		-- Check, wheather the cart is over a detector rail
+		local node = minetest.get_node_or_nil(pos)
+		if (node and node.name == "carts:detectorrail_off") then
+			minetest.swap_node(pos, {name = "carts:detectorrail_on"})
+			mesecon.receptor_on(pos)
+		end
+	end
 end
+
 
 minetest.register_entity("carts:cart", cart)
 
@@ -509,7 +529,7 @@ minetest.register_node("carts:powerrail", {
 			minetest.env:get_meta(pos):set_string("cart_acceleration", "0.5")
 		end
 	end,
-	
+
 	mesecons = {
 		effector = {
 			action_on = function(pos, node)
@@ -544,7 +564,7 @@ minetest.register_node("carts:brakerail", {
 			minetest.env:get_meta(pos):set_string("cart_acceleration", "-0.2")
 		end
 	end,
-	
+
 	mesecons = {
 		effector = {
 			action_on = function(pos, node)
@@ -558,6 +578,88 @@ minetest.register_node("carts:brakerail", {
 	},
 })
 
+-- Cart Detector Rail
+-- (based on mesecon_detector)
+
+local detector_rail_scan = function(pos)
+	if not pos then return end
+	local node = minetest.get_node_or_nil(pos)
+	if not node then return end
+
+	local objects = minetest.get_objects_inside_radius(pos, 1)
+	for _, obj in pairs(objects) do
+		local luaentity = obj:get_luaentity()
+		if (luaentity and luaentity.is_cart) then
+			return true
+		end
+	end
+end
+
+minetest.register_node("carts:detectorrail_off", {
+	description = "Cart Detector Rail (off)",
+	drawtype = "raillike",
+	tiles = {"carts_rail_det.png", "carts_rail_curved_det.png", "carts_rail_t_junction_det.png", "carts_rail_crossing_det.png"},
+	inventory_image = "carts_rail_det.png",
+	wield_image = "carts_rail_det.png",
+	paramtype = "light",
+	is_ground_content = true,
+	walkable = false,
+	selection_box = {
+		type = "fixed",
+		-- but how to specify the dimensions for curved and sideways rails?
+		fixed = {-1/2, -1/2, -1/2, 1/2, -1/2+1/16, 1/2},
+	},
+	groups = {bendy=2,snappy=1,dig_immediate=2,attached_node=1,rail=1,connect_to_raillike=1},
+
+	mesecons = {
+		receptor = {
+			state = mesecon and mesecon.state.off,
+			rules = mesecon and mesecon.rules.default,
+		},
+	},
+})
+
+minetest.register_node("carts:detectorrail_on", {
+	description = "Cart Detector Rail (on)",
+	drawtype = "raillike",
+	tiles = {"carts_rail_det.png", "carts_rail_curved_det.png", "carts_rail_t_junction_det.png", "carts_rail_crossing_det.png"},
+	inventory_image = "carts_rail_det.png",
+	wield_image = "carts_rail_det.png",
+	paramtype = "light",
+	is_ground_content = true,
+	walkable = false,
+	selection_box = {
+		type = "fixed",
+		-- but how to specify the dimensions for curved and sideways rails?
+		fixed = {-1/2, -1/2, -1/2, 1/2, -1/2+1/16, 1/2},
+	},
+	groups = {bendy=2,snappy=1,dig_immediate=2,attached_node=1,rail=1,connect_to_raillike=1,not_in_creative_inventory=1},
+
+	drop = "carts:detectorrail_off",
+
+	mesecons = {
+		receptor = {
+			state = mesecon and mesecon.state.on,
+			rules = mesecon and mesecon.rules.default,
+		},
+	},
+})
+
+if (mesecon) then
+	-- ABM to turn the detector rail off after a while
+	minetest.register_abm(
+		{nodenames = {"carts:detectorrail_on"},
+		interval = 1,
+		chance = 1,
+		action = function(pos, node)
+			if not detector_rail_scan(pos) then
+				minetest.swap_node(pos, {name = "carts:detectorrail_off"})
+				mesecon.receptor_off(pos)
+			end
+		end,
+	})
+end
+
 minetest.register_craft({
 	output = "carts:powerrail 2",
 	recipe = {
@@ -591,5 +693,23 @@ minetest.register_craft({
 		{"default:steel_ingot", "", "default:steel_ingot"},
 		{"default:steel_ingot", "default:stick", "default:steel_ingot"},
 		{"default:steel_ingot", "default:coal_lump", "default:steel_ingot"},
+	}
+})
+
+minetest.register_craft({
+	output = "carts:detectorrail_off 2",
+	recipe = {
+		{"default:steel_ingot", "mesecons_materials:silicon", "default:steel_ingot"},
+		{"default:steel_ingot", "default:stick", "default:steel_ingot"},
+		{"default:steel_ingot", "default:mese_crystal_fragment", "default:steel_ingot"},
+	}
+})
+
+minetest.register_craft({
+	output = "carts:detectorrail_off 2",
+	recipe = {
+		{"default:steel_ingot", "default:mese_crystal_fragment", "default:steel_ingot"},
+		{"default:steel_ingot", "default:stick", "default:steel_ingot"},
+		{"default:steel_ingot", "mesecons_materials:silicon", "default:steel_ingot"},
 	}
 })
